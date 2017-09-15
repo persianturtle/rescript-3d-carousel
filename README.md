@@ -4,4 +4,4 @@ This is my first ReasonML / Reason-React project. Please share your critisms, op
 
 ## Demo
 
-https://persianturtle.github.io/reason-carousel/
+https://persianturtle.github.io/reason-carousel/build/
