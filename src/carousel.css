@@ -1,0 +1,32 @@
+#carousel {
+  position: absolute;
+  transform-style: preserve-3d;
+  backface-visibility: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50vw;
+  height: 60vh;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  cursor: pointer;
+}
+
+#carousel figure {
+  position: absolute;
+  background: rgba(220, 220, 220, 0.95);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 2px solid black;
+  width: 100%;
+  height: inherit;
+  margin: 0;
+  top: 0;
+  left: 0;
+}
