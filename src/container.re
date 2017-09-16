@@ -31,8 +31,7 @@ type state = {
   time: values,
   velocity,
   css,
-  requestAnimationFrameID: ref int,
-  friction: ref float
+  requestAnimationFrameID: ref int
 };
 
 type retainedProps = {
@@ -83,14 +82,14 @@ let averageLatestNonzeroVelocities velocities n => {
   sum latestNonzeroVelocities /. float_of_int n
 };
 
-let calculateOffset state velocity friction sides roundToNearestSide =>
+let calculateOffset state friction sides roundToNearestSide =>
   if roundToNearestSide {
-    let iterations = int_of_float (abs (velocity /. friction));
-    let sign = velocity < 0.0 ? 1.0 : (-1.0);
+    let iterations = int_of_float (abs (!state.velocity.current /. friction));
+    let sign = !state.velocity.current < 0.0 ? 1.0 : (-1.0);
     let estimatedFinalRotation =
       !state.rotation
       +. float_of_int (iterations / 2)
-      *. (2.0 *. velocity +. float_of_int (iterations - 1) *. sign *. friction);
+      *. (2.0 *. !state.velocity.current +. float_of_int (iterations - 1) *. sign *. friction);
     let degreesPerSide = 360.0 /. float_of_int sides;
     let roundedFinalRotation =
       float_of_int (round (estimatedFinalRotation /. degreesPerSide)) *. degreesPerSide;
@@ -99,10 +98,10 @@ let calculateOffset state velocity friction sides roundToNearestSide =>
     0.0
   };
 
-let spinWithFriction state reduce velocity friction sides roundToNearestSide => {
-  let offset = calculateOffset state velocity friction sides roundToNearestSide;
+let spinWithFriction state reduce friction sides roundToNearestSide => {
+  let offset = calculateOffset state friction sides roundToNearestSide;
   let rec onAnimationFrame velocity' () => {
-    Js.log !state.friction;
+    state.velocity.current := velocity';
     if !state.isMouseDown {
       Js.log "The carousel has previously been spun."
     } else if (
@@ -125,7 +124,7 @@ let spinWithFriction state reduce velocity friction sides roundToNearestSide => 
         )
     }
   };
-  state.requestAnimationFrameID := requestAnimationFrame (onAnimationFrame velocity)
+  state.requestAnimationFrameID := requestAnimationFrame (onAnimationFrame !state.velocity.current)
 };
 
 let make ::sides ::friction ::roundToNearestSide _children => {
@@ -145,7 +144,9 @@ let make ::sides ::friction ::roundToNearestSide _children => {
           ^ string_of_float 0.0
           ^ "0deg)"
       };
-      {...self.state, radius, css, friction: ref friction}
+      cancelAnimationFrame !self.state.requestAnimationFrameID;
+      spinWithFriction self.state self.reduce friction sides roundToNearestSide;
+      {...self.state, radius, css}
     },
   initialState: fun () => {
     let radius = 25.0 /. Js.Math.tan (180.0 /. float_of_int sides *. (Js.Math._PI /. 180.0));
@@ -165,8 +166,7 @@ let make ::sides ::friction ::roundToNearestSide _children => {
           ^ "0deg)"
       },
       velocity: {current: ref 0.0, list: ref []},
-      requestAnimationFrameID: ref 0,
-      friction: ref friction
+      requestAnimationFrameID: ref 0
     }
   },
   reducer: fun action state =>
@@ -209,9 +209,7 @@ let make ::sides ::friction ::roundToNearestSide _children => {
       state.time.final := now ();
       state.velocity.current := averageLatestNonzeroVelocities !state.velocity.list 3;
       ReasonReact.SideEffects (
-        fun self =>
-          spinWithFriction
-            self.state self.reduce !state.velocity.current friction sides roundToNearestSide
+        fun self => spinWithFriction self.state self.reduce friction sides roundToNearestSide
       )
     | Spin velocity =>
       state.rotation := !state.rotation +. velocity;
