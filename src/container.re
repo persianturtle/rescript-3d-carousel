@@ -31,7 +31,8 @@ type state = {
   time: values,
   velocity,
   css,
-  requestAnimationFrameID: ref int
+  requestAnimationFrameID: ref int,
+  friction: ref float
 };
 
 type retainedProps = {
@@ -100,8 +101,13 @@ let calculateOffset state velocity friction sides roundToNearestSide =>
 
 let spinWithFriction state reduce velocity friction sides roundToNearestSide => {
   let offset = calculateOffset state velocity friction sides roundToNearestSide;
-  let rec onAnimationFrame velocity' () =>
-    if (abs velocity' < friction) {
+  let rec onAnimationFrame velocity' () => {
+    Js.log !state.friction;
+    if !state.isMouseDown {
+      Js.log "The carousel has previously been spun."
+    } else if (
+      abs velocity' < friction
+    ) {
       cancelAnimationFrame !state.requestAnimationFrameID;
       let degreesPerSide = 360.0 /. float_of_int sides;
       let currentSide =
@@ -110,14 +116,15 @@ let spinWithFriction state reduce velocity friction sides roundToNearestSide => 
         } else {
           (sides - round (abs !state.rotation /. degreesPerSide) mod sides) mod sides
         };
-      Js.log ("you've got: " ^ string_of_int (currentSide + 1))
+      Js.log ("You've landed on side " ^ string_of_int (currentSide + 1) ^ ".")
     } else {
       reduce (fun _ => Spin (velocity' -. offset)) ();
       state.requestAnimationFrameID :=
         requestAnimationFrame (
           onAnimationFrame (velocity' > 0.0 ? velocity' -. friction : velocity' +. friction)
         )
-    };
+    }
+  };
   state.requestAnimationFrameID := requestAnimationFrame (onAnimationFrame velocity)
 };
 
@@ -138,7 +145,7 @@ let make ::sides ::friction ::roundToNearestSide _children => {
           ^ string_of_float 0.0
           ^ "0deg)"
       };
-      {...self.state, radius, css}
+      {...self.state, radius, css, friction: ref friction}
     },
   initialState: fun () => {
     let radius = 25.0 /. Js.Math.tan (180.0 /. float_of_int sides *. (Js.Math._PI /. 180.0));
@@ -158,7 +165,8 @@ let make ::sides ::friction ::roundToNearestSide _children => {
           ^ "0deg)"
       },
       velocity: {current: ref 0.0, list: ref []},
-      requestAnimationFrameID: ref 0
+      requestAnimationFrameID: ref 0,
+      friction: ref friction
     }
   },
   reducer: fun action state =>

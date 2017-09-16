@@ -29,7 +29,6 @@ let make _children => {
     let friction = self.state.friction;
     let roundToNearestSide = self.state.roundToNearestSide;
     let slider = int_of_float ((friction -. 0.005) *. 100.0 /. 0.045);
-    Js.log roundToNearestSide;
     <div>
       <Container sides friction roundToNearestSide />
       <div className="controls">

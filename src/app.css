@@ -4,7 +4,6 @@
   align-items: center;
   justify-content: space-between;
   margin: auto;
-  width: 70vw;
   height: 10vh;
   z-index: 999;
 }
@@ -12,8 +11,25 @@
 label {
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
-input, select {
-  margin-left: 15px;
+@media only screen and (max-width: 767px) {
+  .controls {
+    width: 100vw;
+  }
+
+  label {
+    flex-direction: column;
+  }
+}
+
+@media only screen and (min-width: 767px) {
+  .controls {
+    width: 70vw;
+  }
+
+  input, select {
+    margin-left: 15px;
+  }
 }
