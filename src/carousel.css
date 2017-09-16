@@ -16,6 +16,7 @@
 }
 
 #carousel figure {
+  font-size: 10vw;
   position: absolute;
   background: rgba(220, 220, 220, 0.95);
   overflow: hidden;
@@ -29,4 +30,5 @@
   margin: 0;
   top: 0;
   left: 0;
+  user-select: none;
 }
