@@ -1,35 +1,108 @@
+a {
+  color: dodgerblue;
+  text-decoration: underline;
+}
+
 .controls {
   position: absolute; top: 0; right: 0; left: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin: auto;
-  height: 10vh;
+  justify-content: space-around;
   z-index: 999;
+  box-sizing: border-box;
 }
 
-label {
+.control {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-@media only screen and (max-width: 767px) {
+input, select, button {
+  cursor: pointer;
+}
+
+button {
+  border: 0;
+  width: 40px;
+}
+
+.trigger {
+  display: none;
+}
+
+.close {
+  display: none;
+}
+
+.github {
+  position: absolute;
+  bottom: 5px;
+  left: 50vw;
+  transform: translateX(-50%);
+}
+
+@media only screen and (min-width: 992px) {
   .controls {
-    width: 100vw;
+    width: 70vw;
+    margin: 15px auto;
+    height: 10vh;
   }
 
-  label {
-    flex-direction: column;
+  input, select, button {
+    margin: 0 15px;
   }
 }
 
-@media only screen and (min-width: 767px) {
+@media only screen and (max-width: 991px) {
   .controls {
-    width: 70vw;
+    width: 100vw;
+    margin: 15px;
+    height: 10vh;
   }
 
-  input, select {
-    margin-left: 15px;
+  .control {
+    flex-direction: column;
+  }
+
+  input, select, button {
+    margin: 15px 0;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .controls {
+    display: none;
+    background: rgba(65, 105, 225, 0.65);
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    flex-direction: column;
+    color: white;
+  }
+
+  .control {
+    background: slategray;
+    padding: 5px;
+  }
+
+  .controls.active {
+    display: flex;
+  }
+
+  .trigger {
+    display: block;
+    position: absolute; top: 7.5vh; left: 50vw;
+    transform: translateX(-50%);
+  }
+
+  .close {
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    width: 50px;
+    height: 50px;
   }
 }

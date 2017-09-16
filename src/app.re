@@ -3,26 +3,29 @@
 type state = {
   sides: int,
   friction: float,
-  roundToNearestSide: bool
+  roundToNearestSide: bool,
+  controls: bool
 };
 
 type action =
   | Sides int
   | Friction int
-  | RoundToNearestSide bool;
+  | RoundToNearestSide bool
+  | Controls bool;
 
 let component = ReasonReact.reducerComponent "App";
 
 let make _children => {
   ...component,
-  initialState: fun () => {sides: 8, friction: 0.0175, roundToNearestSide: true},
+  initialState: fun () => {sides: 8, friction: 0.0175, roundToNearestSide: true, controls: false},
   reducer: fun action state =>
     switch action {
-    | Sides side => ReasonReact.Update {...state, sides: side}
+    | Sides n => ReasonReact.Update {...state, sides: state.sides + n}
     | Friction slider =>
       let friction = 0.045 *. float_of_int slider /. 100.0 +. 0.005;
       ReasonReact.Update {...state, friction}
     | RoundToNearestSide roundToNearestSide => ReasonReact.Update {...state, roundToNearestSide}
+    | Controls show => ReasonReact.Update {...state, controls: show}
     },
   render: fun self => {
     let sides = self.state.sides;
@@ -31,33 +34,29 @@ let make _children => {
     let slider = int_of_float ((friction -. 0.005) *. 100.0 /. 0.045);
     <div>
       <Container sides friction roundToNearestSide />
-      <div className="controls">
-        <label>
+      (
+        self.state.controls ?
+          ReasonReact.nullElement :
+          <a className="trigger" onClick=(self.reduce (fun _event => Controls true))>
+            (ReasonReact.stringToElement "Controls")
+          </a>
+      )
+      <div className=(self.state.controls ? "controls active" : "controls")>
+        <button className="close" onClick=(self.reduce (fun _event => Controls false))>
+          (ReasonReact.stringToElement "Close")
+        </button>
+        <div className="control">
+          <button
+            onClick=(self.reduce (fun _event => Sides (-1)))
+            disabled=(sides == 3 ? Js.true_ : Js.false_)>
+            (ReasonReact.stringToElement " - ")
+          </button>
           (ReasonReact.stringToElement "Sides: ")
-          <select
-            value=(string_of_int sides)
-            onChange=(
-              self.reduce (
-                fun event =>
-                  Sides (ReactDOMRe.domElementToObj (ReactEventRe.Form.target event))##value
-              )
-            )>
-            <option> (ReasonReact.stringToElement "3") </option>
-            <option> (ReasonReact.stringToElement "4") </option>
-            <option> (ReasonReact.stringToElement "5") </option>
-            <option> (ReasonReact.stringToElement "6") </option>
-            <option> (ReasonReact.stringToElement "7") </option>
-            <option> (ReasonReact.stringToElement "8") </option>
-            <option> (ReasonReact.stringToElement "9") </option>
-            <option> (ReasonReact.stringToElement "10") </option>
-            <option> (ReasonReact.stringToElement "11") </option>
-            <option> (ReasonReact.stringToElement "12") </option>
-            <option> (ReasonReact.stringToElement "13") </option>
-            <option> (ReasonReact.stringToElement "14") </option>
-            <option> (ReasonReact.stringToElement "15") </option>
-          </select>
-        </label>
-        <label>
+          <button onClick=(self.reduce (fun _event => Sides 1))>
+            (ReasonReact.stringToElement " + ")
+          </button>
+        </div>
+        <div className="control">
           (ReasonReact.stringToElement "Friction: ")
           <input
             _type="range"
@@ -69,8 +68,8 @@ let make _children => {
               )
             )
           />
-        </label>
-        <label>
+        </div>
+        <label className="control">
           (ReasonReact.stringToElement "Round to nearest side: ")
           <input
             _type="checkbox"
@@ -86,6 +85,13 @@ let make _children => {
           />
         </label>
       </div>
+      (
+        self.state.controls ?
+          ReasonReact.nullElement :
+          <a className="github" href="https://github.com/persianturtle/reason-carousel">
+            (ReasonReact.stringToElement "Fork me on Github")
+          </a>
+      )
     </div>
   }
 };

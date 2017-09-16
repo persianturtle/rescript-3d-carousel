@@ -24,19 +24,20 @@ type css = {
 };
 
 type state = {
+  requestAnimationFrameID: ref int,
   rotation: ref float,
   radius: float,
   isMouseDown: ref bool,
   position: values,
   time: values,
   velocity,
-  css,
-  requestAnimationFrameID: ref int
+  css
 };
 
 type retainedProps = {
   sides: int,
-  friction: float
+  friction: float,
+  roundToNearestSide: bool
 };
 
 external requestAnimationFrame : (unit => unit) => int = "requestAnimationFrame" [@@bs.val];
@@ -129,9 +130,16 @@ let spinWithFriction state reduce friction sides roundToNearestSide => {
 
 let make ::sides ::friction ::roundToNearestSide _children => {
   ...component,
-  retainedProps: {sides, friction},
+  retainedProps: {sides, friction, roundToNearestSide},
   willReceiveProps: fun self =>
-    if (self.retainedProps.sides === sides && self.retainedProps.friction === friction) {
+    if (
+      self.retainedProps.sides
+      === sides
+      && self.retainedProps.friction
+      === friction
+      && self.retainedProps.roundToNearestSide
+      === roundToNearestSide
+    ) {
       self.state
     } else {
       let radius = 25.0 /. Js.Math.tan (180.0 /. float_of_int sides *. (Js.Math._PI /. 180.0));
@@ -141,7 +149,7 @@ let make ::sides ::friction ::roundToNearestSide _children => {
           "translate3d(0, 0, -"
           ^ string_of_float radius
           ^ "0vw) rotateY("
-          ^ string_of_float 0.0
+          ^ string_of_float !self.state.rotation
           ^ "0deg)"
       };
       cancelAnimationFrame !self.state.requestAnimationFrameID;
@@ -151,6 +159,7 @@ let make ::sides ::friction ::roundToNearestSide _children => {
   initialState: fun () => {
     let radius = 25.0 /. Js.Math.tan (180.0 /. float_of_int sides *. (Js.Math._PI /. 180.0));
     {
+      requestAnimationFrameID: ref 0,
       radius,
       rotation: ref 0.0,
       isMouseDown: ref false,
@@ -165,8 +174,7 @@ let make ::sides ::friction ::roundToNearestSide _children => {
           ^ string_of_float 0.0
           ^ "0deg)"
       },
-      velocity: {current: ref 0.0, list: ref []},
-      requestAnimationFrameID: ref 0
+      velocity: {current: ref 0.0, list: ref []}
     }
   },
   reducer: fun action state =>
