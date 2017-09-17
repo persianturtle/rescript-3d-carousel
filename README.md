@@ -1,7 +1,7 @@
-## ReasonML / Reason-React Carousel
+## Reason 3D Carousel
 
 This is my first ReasonML / Reason-React project. Please share your critisms, opinions, improvements & questions!
 
 ## Demo
 
-https://persianturtle.github.io/reason-carousel/build/
+https://persianturtle.github.io/reason-3d-carousel/build/
