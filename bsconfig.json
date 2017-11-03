@@ -1,5 +1,6 @@
 {
   "name": "reason-scripts",
+  "refmt": 3,
   "sources": [
     "src"
   ],
