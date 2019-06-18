@@ -191,14 +191,13 @@ let make = (~sides, ~friction, ~roundToNearestSide, _children) => {
              180.0 /. float_of_int(sides) *. (Js.Math._PI /. 180.0),
            );
       let css = {
-        perspective:
-          Js.Float.toString(500.0 /. float_of_int(sides)) ++ "0vw",
+        perspective: Js.Float.toString(500.0 /. float_of_int(sides)) ++ "vw",
         transform:
           "translate3d(0, 0, -"
           ++ Js.Float.toString(radius)
-          ++ "0vw) rotateY("
+          ++ "vw) rotateY("
           ++ Js.Float.toString(self.state.rotation^)
-          ++ "0deg)",
+          ++ "deg)",
       };
       cancelAnimationFrame(self.state.requestAnimationFrameID^);
       spinWithFriction(self, friction, sides, roundToNearestSide);
@@ -226,14 +225,13 @@ let make = (~sides, ~friction, ~roundToNearestSide, _children) => {
         previous: ref(0.0),
       },
       css: {
-        perspective:
-          Js.Float.toString(500.0 /. float_of_int(sides)) ++ "0vw",
+        perspective: Js.Float.toString(500.0 /. float_of_int(sides)) ++ "vw",
         transform:
           "translate3d(0, 0, -"
           ++ Js.Float.toString(radius)
-          ++ "0vw) rotateY("
+          ++ "vw) rotateY("
           ++ Js.Float.toString(0.0)
-          ++ "0deg)",
+          ++ "deg)",
       },
       velocity: {
         current: ref(0.0),
@@ -263,9 +261,9 @@ let make = (~sides, ~friction, ~roundToNearestSide, _children) => {
           let transform =
             "translate3d(0, 0, -"
             ++ Js.Float.toString(state.radius)
-            ++ "0vw) rotateY("
+            ++ "vw) rotateY("
             ++ Js.Float.toString(state.rotation^)
-            ++ "0deg)";
+            ++ "deg)";
           let dx = state.position.current^ -. state.position.previous^;
           let dt = state.time.current^ -. state.time.previous^;
           state.velocity.current := dx /. dt;
@@ -296,9 +294,9 @@ let make = (~sides, ~friction, ~roundToNearestSide, _children) => {
       let transform =
         "translate3d(0, 0, -"
         ++ Js.Float.toString(state.radius)
-        ++ "0vw) rotateY("
+        ++ "vw) rotateY("
         ++ Js.Float.toString(state.rotation^)
-        ++ "0deg)";
+        ++ "deg)";
       ReasonReact.Update({
         ...state,
         css: {

@@ -11,7 +11,7 @@ let create_sides = (sides, radius) =>
         ++ Js.Float.toString(
              360.0 *. float_of_int(index) /. float_of_int(sides),
            )
-        ++ "0deg) translate3d(0, 0,"
+        ++ "deg) translate3d(0, 0,"
         ++ Js.Float.toString(radius)
         ++ "0vw)";
       <figure
