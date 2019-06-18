@@ -1,23 +1,36 @@
 {
-  "name": "create-react-app",
-  "version": "0.1.0",
-  "private": true,
-  "homepage": "https://persianturtle.github.io/reason-3d-carousel/build",
-  "dependencies": {
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0",
-    "reason-scripts": "0.6.9"
-  },
+  "name": "reason-carousel",
+  "version": "1.0.0",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test --env=jsdom",
-    "eject": "react-scripts eject",
-    "prepare": "npm link bs-platform"
+    "start": "npm-run-all --parallel start:*",
+    "start:bsb": "bsb -clean-world -make-world -w",
+    "start:webpack": "webpack-dev-server",
+    "build": "npm-run-all build:*",
+    "build:bsb": "bsb -clean-world -make-world",
+    "build:webpack": "NODE_ENV=production webpack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Raphael Rafatpanah",
+  "license": "MIT",
+  "dependencies": {
+    "react": "latest",
+    "react-dom": "latest",
+    "reason-react": "latest"
   },
   "devDependencies": {
-    "bs-jest": "^0.1.0",
-    "bs-platform": "^2.0.0",
-    "reason-react": "^0.2.4"
+    "bs-platform": "latest",
+    "css-loader": "latest",
+    "node-sass": "latest",
+    "sass-loader": "latest",
+    "style-loader": "latest",
+    "workbox-webpack-plugin": "latest",
+    "html-webpack-plugin": "latest",
+    "clean-webpack-plugin": "latest",
+    "webpack-pwa-manifest": "latest",
+    "webpack-dev-server": "latest",
+    "npm-run-all": "latest",
+    "url-loader": "latest",
+    "webpack": "latest",
+    "webpack-cli": "latest"
   }
 }

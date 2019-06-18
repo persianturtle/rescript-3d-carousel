@@ -1,17 +1,19 @@
 {
-  "name": "reason-scripts",
-  "refmt": 3,
-  "sources": [
-    "src"
-  ],
-  "bs-dependencies": [
-    "reason-react",
-    "bs-jest"
-  ],
+  "name": "reason-carousel",
   "reason": {
     "react-jsx": 2
   },
-  "bsc-flags": [
-    "-bs-super-errors"
-  ]
+  "sources": {
+    "dir": "src",
+    "subdirs": true
+  },
+  "package-specs": [
+    {
+      "module": "es6"
+    }
+  ],
+  "suffix": ".bs.js",
+  "namespace": true,
+  "bs-dependencies": ["reason-react"],
+  "refmt": 3
 }
