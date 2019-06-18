@@ -23,13 +23,9 @@
     "node-sass": "latest",
     "sass-loader": "latest",
     "style-loader": "latest",
-    "workbox-webpack-plugin": "latest",
     "html-webpack-plugin": "latest",
-    "clean-webpack-plugin": "latest",
-    "webpack-pwa-manifest": "latest",
     "webpack-dev-server": "latest",
     "npm-run-all": "latest",
-    "url-loader": "latest",
     "webpack": "latest",
     "webpack-cli": "latest"
   }

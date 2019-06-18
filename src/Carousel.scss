@@ -13,22 +13,22 @@
   bottom: 0;
   margin: auto;
   cursor: pointer;
-}
 
-#carousel figure {
-  font-size: 3vw;
-  position: absolute;
-  background: rgba(220, 220, 220, 0.95);
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  border: 2px solid black;
-  width: 100%;
-  height: inherit;
-  margin: 0;
-  top: 0;
-  left: 0;
-  user-select: none;
+  figure {
+    font-size: 3vw;
+    position: absolute;
+    background: rgba(220, 220, 220, 0.95);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    border: 2px solid black;
+    width: 100%;
+    height: inherit;
+    margin: 0;
+    top: 0;
+    left: 0;
+    user-select: none;
+  }
 }
