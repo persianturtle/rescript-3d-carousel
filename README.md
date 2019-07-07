@@ -8,4 +8,4 @@ https://persianturtle.github.io/reason-3d-carousel/build/
 
 ## TODO
 
-Convert the project to use the Hooks API.
+- [x] Convert the project to use the Hooks API.
