@@ -4,7 +4,7 @@ type state = {
   numberOfSides: int,
   amountOfFriction: int,
   shouldRoundToNearestSide: bool,
-  shouldShowControls: bool,
+  shouldShowMobileControls: bool,
 };
 
 type action =
@@ -28,23 +28,23 @@ let make = () => {
             ...state,
             shouldRoundToNearestSide,
           }
-        | ToggleControls(shouldShowControls) => {
+        | ToggleControls(shouldShowMobileControls) => {
             ...state,
-            shouldShowControls,
+            shouldShowMobileControls,
           }
         },
       {
         numberOfSides: 8,
         amountOfFriction: 50,
         shouldRoundToNearestSide: true,
-        shouldShowControls: false,
+        shouldShowMobileControls: false,
       },
     );
   let {
     numberOfSides,
     amountOfFriction,
     shouldRoundToNearestSide,
-    shouldShowControls,
+    shouldShowMobileControls,
   } = state;
   let radius =
     25.0
@@ -61,14 +61,14 @@ let make = () => {
       amountOfFriction
       shouldRoundToNearestSide
     />
-    {shouldShowControls
+    {shouldShowMobileControls
        ? ReasonReact.null
        : <a
            className="trigger"
            onClick={_event => dispatch(ToggleControls(true))}>
            {ReasonReact.string("Controls")}
          </a>}
-    <div className={shouldShowControls ? "controls active" : "controls"}>
+    <div className={shouldShowMobileControls ? "controls active" : "controls"}>
       <button
         className="close"
         onClick={_event => dispatch(ToggleControls(false))}>
@@ -110,7 +110,7 @@ let make = () => {
         />
       </label>
     </div>
-    {shouldShowControls
+    {shouldShowMobileControls
        ? ReasonReact.null
        : <a
            className="github"

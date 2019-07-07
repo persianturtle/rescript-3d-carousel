@@ -32,8 +32,6 @@ type state = {
 external requestAnimationFrame: (unit => unit) => int =
   "requestAnimationFrame";
 
-[@bs.val] external cancelAnimationFrame: int => unit = "cancelAnimationFrame";
-
 [@bs.val] [@bs.scope "performance"] external now: unit => float = "now";
 
 let averageLatestNonZeroVelocities = (velocities, n) => {
@@ -53,6 +51,7 @@ let averageLatestNonZeroVelocities = (velocities, n) => {
   };
 };
 
+/* math.stackexchange.com/q/2429749/61853 */
 let calculateFrictionOffset =
     (~state, ~numberOfSides, ~amountOfFriction, ~shouldRoundToNearestSide) =>
   if (shouldRoundToNearestSide) {
