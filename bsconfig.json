@@ -1,7 +1,7 @@
 {
   "name": "reason-carousel",
   "reason": {
-    "react-jsx": 2
+    "react-jsx": 3
   },
   "sources": {
     "dir": "src",

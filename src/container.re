@@ -18,26 +18,14 @@ type velocity = {
   list: ref(list(float)),
 };
 
-type css = {
-  perspective: string,
-  transform: string,
-};
-
 type state = {
-  requestAnimationFrameID: ref(int),
   rotation: ref(float),
-  radius: float,
   isMouseDown: ref(bool),
+  hasUserInteractionEnded: bool,
   position: values,
   time: values,
+  transform: string,
   velocity,
-  css,
-};
-
-type retainedProps = {
-  sides: int,
-  friction: float,
-  roundToNearestSide: bool,
 };
 
 [@bs.val]
@@ -48,70 +36,42 @@ external requestAnimationFrame: (unit => unit) => int =
 
 [@bs.val] [@bs.scope "performance"] external now: unit => float = "now";
 
-/*
-   @yawaramin mentioned:
-   re: your open question about TouchList conversion to array,
-   i'd model TouchList as a separate module in TouchList.re,
-   and bind to the TouchList.item method with an external since you only
-   seem to be getting the first touch item from the touchlist. so like
-   /* TouchList.re */ type t; external item : int => _ = "" [@@bs.send.pipe: t];(edited)
-   instead of unsafeAnyToArray (ReactEvent.Touch.changedTouches event)).(0)##clientX
-   you can do (event |> ReactEvent.Touch.changedTouches |> TouchList.item 0)##clientX
- */
-external unsafeAnyToArray: 'a => array('a) = "%identity";
-
-let component = ReasonReact.reducerComponentWithRetainedProps("Container");
-
-let findAndFilter = (~list, ~n, ~f) => {
-  let rec aux = (list', n', acc) =>
-    if (n' == 0) {
-      acc;
-    } else {
-      switch (list') {
-      | [] => []
-      | [item, ...rest] =>
-        if (f(item)) {
-          aux(rest, n' - 1, [item, ...acc]);
-        } else {
-          aux(rest, n', acc);
-        }
+let averageLatestNonZeroVelocities = (velocities, n) => {
+  let sum = list => {
+    let rec aux = (acc, list) => {
+      switch (list) {
+      | [] => acc
+      | [hd, ...tl] => aux(acc +. hd, tl)
       };
     };
-  aux(list, n, []);
-};
-
-let rec sum = list =>
-  switch (list) {
-  | [] => 0.0
-  | [item, ...rest] => item +. sum(rest)
+    aux(0.0, list);
   };
 
-let averageLatestNonzeroVelocities = (velocities, n) => {
-  let latestNonzeroVelocities =
-    findAndFilter(~list=velocities, ~n, ~f=item => item != 0.0);
-  sum(latestNonzeroVelocities) /. float_of_int(n);
+  switch (Belt.List.(keep(velocities, v => v !== 0.0)->take(3))) {
+  | None => 0.0
+  | Some(list) => sum(list) /. float_of_int(n)
+  };
 };
 
-let calculateOffset = (self, friction, sides, roundToNearestSide) =>
-  if (roundToNearestSide) {
+let calculateFrictionOffset =
+    (~state, ~numberOfSides, ~amountOfFriction, ~shouldRoundToNearestSide) =>
+  if (shouldRoundToNearestSide) {
     let iterations =
       int_of_float(
-        Js.Math.abs_float(
-          self.ReasonReact.state.velocity.current^ /. friction,
-        ),
+        Js.Math.abs_float(state.velocity.current^ /. amountOfFriction),
       );
-    let sign = self.ReasonReact.state.velocity.current^ < 0.0 ? 1.0 : (-1.0);
+    let sign = state.velocity.current^ < 0.0 ? 1.0 : (-1.0);
     let estimatedFinalRotation =
-      self.ReasonReact.state.rotation^
+      state.rotation^
       +. float_of_int(iterations / 2)
       *. (
         2.0
-        *. self.ReasonReact.state.velocity.current^
+        *. state.velocity.current^
         +. float_of_int(iterations - 1)
         *. sign
-        *. friction
+        *. amountOfFriction
       );
-    let degreesPerSide = 360.0 /. float_of_int(sides);
+    let degreesPerSide = 360.0 /. float_of_int(numberOfSides);
     let roundedFinalRotation =
       Js.Math.round(estimatedFinalRotation /. degreesPerSide)
       *. degreesPerSide;
@@ -121,237 +81,204 @@ let calculateOffset = (self, friction, sides, roundToNearestSide) =>
     0.0;
   };
 
-let spinWithFriction = (self, friction, sides, roundToNearestSide) => {
-  let offset = calculateOffset(self, friction, sides, roundToNearestSide);
-  let rec onAnimationFrame = (velocity', ()) => {
-    self.ReasonReact.state.velocity.current := velocity';
-    if (self.ReasonReact.state.isMouseDown^) {
-      Js.log("The carousel has previously been spun.");
-    } else if (Js.Math.abs_float(velocity') < friction) {
-      cancelAnimationFrame(self.ReasonReact.state.requestAnimationFrameID^);
-      let degreesPerSide = 360.0 /. float_of_int(sides);
-      let currentSide =
-        if (self.ReasonReact.state.rotation^ < 0.0) {
-          int_of_float(
-            Js.Math.round(
-              Js.Math.abs_float(self.ReasonReact.state.rotation^)
-              /. degreesPerSide,
-            ),
-          )
-          mod sides;
-        } else {
-          (
-            sides
-            - int_of_float(
-                Js.Math.round(
-                  Js.Math.abs_float(self.ReasonReact.state.rotation^)
-                  /. degreesPerSide,
-                ),
-              )
-            mod sides
-          )
-          mod sides;
-        };
-      Js.log(
-        "You've landed on side " ++ string_of_int(currentSide + 1) ++ ".",
+let spinWithFriction =
+    (
+      ~state,
+      ~dispatch,
+      ~numberOfSides,
+      ~amountOfFriction,
+      ~shouldRoundToNearestSide,
+    ) => {
+  let amountOfFriction = float_of_int(amountOfFriction) /. 1000. +. 0.005;
+  switch (state.velocity.current^) {
+  | velocity when Js.Math.abs_float(velocity) > amountOfFriction =>
+    let velocity =
+      velocity > 0.0
+        ? velocity -. amountOfFriction : velocity +. amountOfFriction;
+    let offset =
+      calculateFrictionOffset(
+        ~state,
+        ~numberOfSides,
+        ~amountOfFriction,
+        ~shouldRoundToNearestSide,
       );
-    } else {
-      Js.log(velocity');
-      self.ReasonReact.send(Spin(velocity' -. offset));
-      self.ReasonReact.state.requestAnimationFrameID :=
-        requestAnimationFrame(
-          onAnimationFrame(
-            velocity' > 0.0 ? velocity' -. friction : velocity' +. friction,
+    dispatch(Spin(velocity -. offset));
+  | _ =>
+    let degreesPerSide = 360.0 /. float_of_int(numberOfSides);
+    let currentSide =
+      if (state.rotation^ < 0.0) {
+        int_of_float(
+          Js.Math.round(
+            Js.Math.abs_float(state.rotation^) /. degreesPerSide,
           ),
-        );
-    };
-  };
-  self.ReasonReact.state.requestAnimationFrameID :=
-    requestAnimationFrame(
-      onAnimationFrame(self.ReasonReact.state.velocity.current^),
+        )
+        mod numberOfSides;
+      } else {
+        (
+          numberOfSides
+          - int_of_float(
+              Js.Math.round(
+                Js.Math.abs_float(state.rotation^) /. degreesPerSide,
+              ),
+            )
+          mod numberOfSides
+        )
+        mod numberOfSides;
+      };
+    Js.log(
+      "You've landed on side " ++ string_of_int(currentSide + 1) ++ ".",
     );
+  };
 };
 
-let make = (~sides, ~friction, ~roundToNearestSide, _children) => {
-  ...component,
-  retainedProps: {
-    sides,
-    friction,
-    roundToNearestSide,
-  },
-  willReceiveProps: self =>
-    if (self.retainedProps.sides === sides
-        && self.retainedProps.friction === friction
-        && self.retainedProps.roundToNearestSide === roundToNearestSide) {
-      self.state;
-    } else {
-      let radius =
-        25.0
-        /. Js.Math.tan(
-             180.0 /. float_of_int(sides) *. (Js.Math._PI /. 180.0),
-           );
-      let css = {
-        perspective: Js.Float.toString(500.0 /. float_of_int(sides)) ++ "vw",
-        transform:
-          "translate3d(0, 0, -"
-          ++ Js.Float.toString(radius)
-          ++ "vw) rotateY("
-          ++ Js.Float.toString(self.state.rotation^)
-          ++ "deg)",
-      };
-      cancelAnimationFrame(self.state.requestAnimationFrameID^);
-      spinWithFriction(self, friction, sides, roundToNearestSide);
-      {...self.state, radius, css};
-    },
-  initialState: () => {
-    let radius =
-      25.0
-      /. Js.Math.tan(180.0 /. float_of_int(sides) *. (Js.Math._PI /. 180.0));
-    {
-      requestAnimationFrameID: ref(0),
-      radius,
-      rotation: ref(0.0),
-      isMouseDown: ref(false),
-      position: {
-        initial: ref(0.0),
-        final: ref(0.0),
-        current: ref(0.0),
-        previous: ref(0.0),
-      },
-      time: {
-        initial: ref(0.0),
-        final: ref(0.0),
-        current: ref(0.0),
-        previous: ref(0.0),
-      },
-      css: {
-        perspective: Js.Float.toString(500.0 /. float_of_int(sides)) ++ "vw",
-        transform:
-          "translate3d(0, 0, -"
-          ++ Js.Float.toString(radius)
-          ++ "vw) rotateY("
-          ++ Js.Float.toString(0.0)
-          ++ "deg)",
-      },
-      velocity: {
-        current: ref(0.0),
-        list: ref([]),
-      },
-    };
-  },
-  reducer: (action, state) =>
-    switch (action) {
-    | StartInteraction(clientX) =>
-      state.isMouseDown := true;
-      state.position.previous := float_of_int(clientX);
-      state.time.initial := now();
-      state.time.previous := now();
-      state.velocity.current := 0.0;
-      state.velocity.list := [];
-      ReasonReact.NoUpdate;
-    | MoveInteraction(clientX) =>
-      state.isMouseDown^
-        ? {
-          state.position.current := float_of_int(clientX);
-          state.time.current := now();
-          state.rotation :=
-            state.rotation^
-            -. (state.position.previous^ -. state.position.current^)
-            /. float_of_int(sides * 2);
-          let transform =
-            "translate3d(0, 0, -"
-            ++ Js.Float.toString(state.radius)
-            ++ "vw) rotateY("
-            ++ Js.Float.toString(state.rotation^)
-            ++ "deg)";
-          let dx = state.position.current^ -. state.position.previous^;
-          let dt = state.time.current^ -. state.time.previous^;
-          state.velocity.current := dx /. dt;
-          state.velocity.list :=
-            [state.velocity.current^, ...state.velocity.list^];
-          state.position.previous := state.position.current^;
-          state.time.previous := state.time.current^;
-          ReasonReact.Update({
+let buildTransformString = (~radius, ~rotation) => {
+  "translate3d(0, 0, -"
+  ++ Js.Float.toString(radius)
+  ++ "vw) rotateY("
+  ++ Js.Float.toString(rotation)
+  ++ "deg)";
+};
+
+[@react.component]
+let make =
+    (
+      ~numberOfSides,
+      ~radius,
+      ~perspective,
+      ~amountOfFriction,
+      ~shouldRoundToNearestSide,
+    ) => {
+  let (state, dispatch) =
+    React.useReducer(
+      (state, action) =>
+        switch (action) {
+        | StartInteraction(clientX) =>
+          state.isMouseDown := true;
+          state.position.previous := float_of_int(clientX);
+          state.time.initial := now();
+          state.time.previous := now();
+          state.velocity.current := 0.0;
+          state.velocity.list := [];
+          {...state, hasUserInteractionEnded: false};
+        | MoveInteraction(clientX) =>
+          state.isMouseDown^
+            ? {
+              state.position.current := float_of_int(clientX);
+              state.time.current := now();
+              state.rotation :=
+                state.rotation^
+                -. (state.position.previous^ -. state.position.current^)
+                /. float_of_int(numberOfSides);
+              let dx = state.position.current^ -. state.position.previous^;
+              let dt = state.time.current^ -. state.time.previous^;
+              state.velocity.current := dx /. dt;
+              state.velocity.list :=
+                [state.velocity.current^, ...state.velocity.list^];
+              state.position.previous := state.position.current^;
+              state.time.previous := state.time.current^;
+              {
+                ...state,
+                transform:
+                  buildTransformString(~radius, ~rotation=state.rotation^),
+              };
+            }
+            : state
+        | EndInteraction(clientX) =>
+          state.isMouseDown := false;
+          state.position.final := float_of_int(clientX);
+          state.time.final := now();
+          state.velocity.current :=
+            averageLatestNonZeroVelocities(state.velocity.list^, 3);
+          {...state, hasUserInteractionEnded: true};
+        | Spin(velocity) =>
+          state.rotation := state.rotation^ +. velocity;
+          state.velocity.current := velocity;
+          {
             ...state,
-            css: {
-              perspective: state.css.perspective,
-              transform,
-            },
-          });
-        }
-        : ReasonReact.NoUpdate
-    | EndInteraction(clientX) =>
-      state.isMouseDown := false;
-      state.position.final := float_of_int(clientX);
-      state.time.final := now();
-      state.velocity.current :=
-        averageLatestNonzeroVelocities(state.velocity.list^, 3);
-      ReasonReact.SideEffects(
-        self => spinWithFriction(self, friction, sides, roundToNearestSide),
-      );
-    | Spin(velocity) =>
-      state.rotation := state.rotation^ +. velocity;
-      let transform =
-        "translate3d(0, 0, -"
-        ++ Js.Float.toString(state.radius)
-        ++ "vw) rotateY("
-        ++ Js.Float.toString(state.rotation^)
-        ++ "deg)";
-      ReasonReact.Update({
-        ...state,
-        css: {
-          perspective: state.css.perspective,
-          transform,
+            transform:
+              buildTransformString(~radius, ~rotation=state.rotation^),
+          };
         },
-      });
-    },
-  render: self =>
-    <div
-      id="container"
-      onMouseDown={event =>
-        self.ReasonReact.send(
-          StartInteraction(ReactEvent.Mouse.clientX(event)),
+      {
+        {
+          rotation: ref(0.0),
+          isMouseDown: ref(false),
+          hasUserInteractionEnded: false,
+          position: {
+            initial: ref(0.0),
+            final: ref(0.0),
+            current: ref(0.0),
+            previous: ref(0.0),
+          },
+          time: {
+            initial: ref(0.0),
+            final: ref(0.0),
+            current: ref(0.0),
+            previous: ref(0.0),
+          },
+          transform: buildTransformString(~radius, ~rotation=0.0),
+          velocity: {
+            current: ref(0.0),
+            list: ref([]),
+          },
+        };
+      },
+    );
+
+  React.useLayoutEffect(() => {
+    if (state.hasUserInteractionEnded) {
+      requestAnimationFrame(() =>
+        spinWithFriction(
+          ~state,
+          ~dispatch,
+          ~numberOfSides,
+          ~amountOfFriction,
+          ~shouldRoundToNearestSide,
         )
-      }
-      onMouseMove={event =>
-        self.ReasonReact.send(
-          MoveInteraction(ReactEvent.Mouse.clientX(event)),
-        )
-      }
-      onMouseUp={event =>
-        self.ReasonReact.send(
-          EndInteraction(ReactEvent.Mouse.clientX(event)),
-        )
-      }
-      onTouchStart={event =>
-        self.ReasonReact.send(
-          StartInteraction(
-            unsafeAnyToArray(ReactEvent.Touch.changedTouches(event))[0]##clientX,
-          ),
-        )
-      }
-      onTouchMove={event =>
-        self.ReasonReact.send(
-          MoveInteraction(
-            unsafeAnyToArray(ReactEvent.Touch.changedTouches(event))[0]##clientX,
-          ),
-        )
-      }
-      onTouchEnd={event =>
-        self.ReasonReact.send(
-          EndInteraction(
-            unsafeAnyToArray(ReactEvent.Touch.changedTouches(event))[0]##clientX,
-          ),
-        )
-      }
-      style={ReactDOMRe.Style.make(
-        ~perspective=self.state.css.perspective,
-        (),
-      )}>
-      <Carousel
-        sides
-        radius={self.state.radius}
-        transform={self.state.css.transform}
-      />
-    </div>,
+      )
+      ->ignore;
+    };
+
+    None;
+  });
+
+  <div
+    id="container"
+    onMouseDown={event =>
+      dispatch(StartInteraction(ReactEvent.Mouse.clientX(event)))
+    }
+    onMouseMove={event =>
+      dispatch(MoveInteraction(ReactEvent.Mouse.clientX(event)))
+    }
+    onMouseUp={event =>
+      dispatch(EndInteraction(ReactEvent.Mouse.clientX(event)))
+    }
+    onTouchStart={event =>
+      dispatch(
+        StartInteraction(
+          ReactEvent.Touch.changedTouches(event)##item(0)##clientX,
+        ),
+      )
+    }
+    onTouchMove={event =>
+      dispatch(
+        MoveInteraction(
+          ReactEvent.Touch.changedTouches(event)##item(0)##clientX,
+        ),
+      )
+    }
+    onTouchEnd={event =>
+      dispatch(
+        EndInteraction(
+          ReactEvent.Touch.changedTouches(event)##item(0)##clientX,
+        ),
+      )
+    }
+    style={ReactDOMRe.Style.make(~perspective, ())}>
+    <Carousel
+      numberOfSides
+      radius
+      transform={buildTransformString(~radius, ~rotation=state.rotation^)}
+    />
+  </div>;
 };

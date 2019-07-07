@@ -1,104 +1,121 @@
 [%bs.raw {|require('../../../src/App.scss')|}];
 
 type state = {
-  sides: int,
-  friction: float,
-  roundToNearestSide: bool,
-  controls: bool,
+  numberOfSides: int,
+  amountOfFriction: int,
+  shouldRoundToNearestSide: bool,
+  shouldShowControls: bool,
 };
 
 type action =
-  | Sides(int)
-  | Friction(int)
-  | RoundToNearestSide(bool)
-  | Controls(bool);
+  | SetNumberOfSides(int)
+  | SetFriction(int)
+  | ToggleRoundToNearestSide(bool)
+  | ToggleControls(bool);
 
-let component = ReasonReact.reducerComponent("App");
-
-let make = _children => {
-  ...component,
-  initialState: () => {
-    sides: 8,
-    friction: 0.0175,
-    roundToNearestSide: true,
-    controls: false,
-  },
-  reducer: (action, state) =>
-    switch (action) {
-    | Sides(n) => ReasonReact.Update({...state, sides: state.sides + n})
-    | Friction(slider) =>
-      let friction = 0.045 *. float_of_int(slider) /. 100.0 +. 0.005;
-      ReasonReact.Update({...state, friction});
-    | RoundToNearestSide(roundToNearestSide) =>
-      ReasonReact.Update({...state, roundToNearestSide})
-    | Controls(show) => ReasonReact.Update({...state, controls: show})
-    },
-  render: self => {
-    let sides = self.ReasonReact.state.sides;
-    let friction = self.ReasonReact.state.friction;
-    let roundToNearestSide = self.ReasonReact.state.roundToNearestSide;
-    let slider = int_of_float((friction -. 0.005) *. 100.0 /. 0.045);
-    <div>
-      <Container sides friction roundToNearestSide />
-      {self.ReasonReact.state.controls
-         ? ReasonReact.null
-         : <a
-             className="trigger"
-             onClick={_event => self.ReasonReact.send(Controls(true))}>
-             {ReasonReact.string("Controls")}
-           </a>}
-      <div
-        className={
-          self.ReasonReact.state.controls ? "controls active" : "controls"
-        }>
+[@react.component]
+let make = () => {
+  let (state, dispatch) =
+    React.useReducer(
+      (state, action) =>
+        switch (action) {
+        | SetNumberOfSides(n) => {
+            ...state,
+            numberOfSides: state.numberOfSides + n,
+          }
+        | SetFriction(friction) => {...state, amountOfFriction: friction}
+        | ToggleRoundToNearestSide(shouldRoundToNearestSide) => {
+            ...state,
+            shouldRoundToNearestSide,
+          }
+        | ToggleControls(shouldShowControls) => {
+            ...state,
+            shouldShowControls,
+          }
+        },
+      {
+        numberOfSides: 8,
+        amountOfFriction: 50,
+        shouldRoundToNearestSide: true,
+        shouldShowControls: false,
+      },
+    );
+  let {
+    numberOfSides,
+    amountOfFriction,
+    shouldRoundToNearestSide,
+    shouldShowControls,
+  } = state;
+  let radius =
+    25.0
+    /. Js.Math.tan(
+         180.0 /. float_of_int(numberOfSides) *. (Js.Math._PI /. 180.0),
+       );
+  let perspective =
+    Js.Float.toString(500.0 /. float_of_int(numberOfSides)) ++ "vw";
+  <div>
+    <Container
+      numberOfSides
+      radius
+      perspective
+      amountOfFriction
+      shouldRoundToNearestSide
+    />
+    {shouldShowControls
+       ? ReasonReact.null
+       : <a
+           className="trigger"
+           onClick={_event => dispatch(ToggleControls(true))}>
+           {ReasonReact.string("Controls")}
+         </a>}
+    <div className={shouldShowControls ? "controls active" : "controls"}>
+      <button
+        className="close"
+        onClick={_event => dispatch(ToggleControls(false))}>
+        {ReasonReact.string({js|\u00d7|js})}
+      </button>
+      <div className="control">
         <button
-          className="close"
-          onClick={_event => self.ReasonReact.send(Controls(false))}>
-          {ReasonReact.string({js|\u00d7|js})}
+          onClick={_event => dispatch(SetNumberOfSides(-1))}
+          disabled={numberOfSides == 3 ? true : false}>
+          {ReasonReact.string(" - ")}
         </button>
-        <div className="control">
-          <button
-            onClick={_event => self.ReasonReact.send(Sides(-1))}
-            disabled={sides == 3 ? true : false}>
-            {ReasonReact.string(" - ")}
-          </button>
-          {ReasonReact.string("Sides: ")}
-          <button onClick={_event => self.ReasonReact.send(Sides(1))}>
-            {ReasonReact.string(" + ")}
-          </button>
-        </div>
-        <div className="control">
-          {ReasonReact.string("Friction: ")}
-          <input
-            type_="range"
-            value={string_of_int(slider)}
-            onChange={event =>
-              self.ReasonReact.send(
-                Friction(ReactEvent.Form.target(event)##value),
-              )
-            }
-          />
-        </div>
-        <label className="control">
-          {ReasonReact.string("Round to nearest side: ")}
-          <input
-            type_="checkbox"
-            checked={roundToNearestSide ? true : false}
-            onChange={event =>
-              self.ReasonReact.send(
-                RoundToNearestSide(ReactEvent.Form.target(event)##checked),
-              )
-            }
-          />
-        </label>
+        {ReasonReact.string("Sides: ")}
+        <button onClick={_event => dispatch(SetNumberOfSides(1))}>
+          {ReasonReact.string(" + ")}
+        </button>
       </div>
-      {self.state.controls
-         ? ReasonReact.null
-         : <a
-             className="github"
-             href="https://github.com/persianturtle/reason-carousel">
-             {ReasonReact.string("Fork me on Github")}
-           </a>}
-    </div>;
-  },
+      <div className="control">
+        {ReasonReact.string("Friction: ")}
+        <input
+          type_="range"
+          value={string_of_int(amountOfFriction)}
+          onChange={event =>
+            dispatch(SetFriction(ReactEvent.Form.target(event)##value))
+          }
+        />
+      </div>
+      <label className="control">
+        {ReasonReact.string("Round to nearest side: ")}
+        <input
+          type_="checkbox"
+          checked={shouldRoundToNearestSide ? true : false}
+          onChange={event =>
+            dispatch(
+              ToggleRoundToNearestSide(
+                ReactEvent.Form.target(event)##checked,
+              ),
+            )
+          }
+        />
+      </label>
+    </div>
+    {shouldShowControls
+       ? ReasonReact.null
+       : <a
+           className="github"
+           href="https://github.com/persianturtle/reason-carousel">
+           {ReasonReact.string("Fork me on Github")}
+         </a>}
+  </div>;
 };
