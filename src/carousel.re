@@ -1,4 +1,5 @@
-[%bs.raw {|require('../../../src/Carousel.scss')|}];
+%raw
+{| import "../../../src/Carousel.scss" |};
 
 let create_sides = (numberOfSides, radius) =>
   Array.init(

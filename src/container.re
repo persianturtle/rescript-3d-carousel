@@ -1,4 +1,5 @@
-[%bs.raw {|require('../../../src/Container.scss')|}];
+%raw
+{| import "../../../src/Container.scss" |};
 
 type action =
   | StartInteraction(int)

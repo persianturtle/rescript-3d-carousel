@@ -1,4 +1,5 @@
-[%bs.raw {|require('../../../src/App.scss')|}];
+%raw
+{| import "../../../src/App.scss" |};
 
 type state = {
   numberOfSides: int,
