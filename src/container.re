@@ -140,14 +140,15 @@ let buildTransformString = (~radius, ~rotation) => {
 };
 
 [@react.component]
-let make =
-    (
-      ~numberOfSides,
-      ~radius,
-      ~perspective,
-      ~amountOfFriction,
-      ~shouldRoundToNearestSide,
-    ) => {
+let make = (~team, ~amountOfFriction, ~shouldRoundToNearestSide) => {
+  let numberOfSides = Js.Array.length(team);
+  let radius =
+    25.0
+    /. Js.Math.tan(
+         180.0 /. float_of_int(numberOfSides) *. (Js.Math._PI /. 180.0),
+       );
+  let perspective =
+    Js.Float.toString(500.0 /. float_of_int(numberOfSides)) ++ "vw";
   let (state, dispatch) =
     React.useReducer(
       (state, action) =>
@@ -276,7 +277,7 @@ let make =
     }
     style={ReactDOMRe.Style.make(~perspective, ())}>
     <Carousel
-      numberOfSides
+      team
       radius
       transform={buildTransformString(~radius, ~rotation=state.rotation^)}
     />
