@@ -1,6 +1,7 @@
 {
   "name": "reason-carousel",
   "version": "1.0.0",
+  "homepage": "https://persianturtle.github.io/reason-3d-carousel/build",
   "scripts": {
     "start": "npm-run-all --parallel start:*",
     "start:bsb": "bsb -clean-world -make-world -w",
