@@ -5,7 +5,10 @@ let team =
   Js.String.split(
     ",",
     [%raw "new URLSearchParams(window.location.search).get('team')"],
-  );
+  )
+  ->Belt.Array.shuffle;
+
+Js.log(team);
 
 [@react.component]
 let make = () => {
