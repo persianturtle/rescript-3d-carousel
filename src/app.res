@@ -45,27 +45,27 @@ let make = () => {
   <div>
     <Container numberOfSides radius perspective amountOfFriction shouldRoundToNearestSide />
     {shouldShowMobileControls
-      ? ReasonReact.null
+      ? React.null
       : <a className="trigger" onClick={_event => dispatch(ToggleControls(true))}>
-          {ReasonReact.string("Controls")}
+          {React.string("Controls")}
         </a>}
     <div className={shouldShowMobileControls ? "controls active" : "controls"}>
       <button className="close" onClick={_event => dispatch(ToggleControls(false))}>
-        {ReasonReact.string(`\\u00d7`)}
+        {React.string(`\\u00d7`)}
       </button>
       <div className="control">
         <button
           onClick={_event => dispatch(SetNumberOfSides(-1))}
           disabled={numberOfSides == 3 ? true : false}>
-          {ReasonReact.string(" - ")}
+          {React.string(" - ")}
         </button>
-        {ReasonReact.string("Sides: ")}
+        {React.string("Sides: ")}
         <button onClick={_event => dispatch(SetNumberOfSides(1))}>
-          {ReasonReact.string(" + ")}
+          {React.string(" + ")}
         </button>
       </div>
       <div className="control">
-        {ReasonReact.string("Friction: ")}
+        {React.string("Friction: ")}
         <input
           type_="range"
           value={string_of_int(amountOfFriction)}
@@ -73,7 +73,7 @@ let make = () => {
         />
       </div>
       <label className="control">
-        {ReasonReact.string("Round to nearest side: ")}
+        {React.string("Round to nearest side: ")}
         <input
           type_="checkbox"
           checked={shouldRoundToNearestSide ? true : false}
@@ -83,9 +83,9 @@ let make = () => {
       </label>
     </div>
     {shouldShowMobileControls
-      ? ReasonReact.null
+      ? React.null
       : <a className="github" href="https://github.com/persianturtle/reason-carousel">
-          {ReasonReact.string("Fork me on Github")}
+          {React.string("Fork me on Github")}
         </a>}
   </div>
 }

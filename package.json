@@ -14,9 +14,9 @@
   "author": "Raphael Rafatpanah",
   "license": "MIT",
   "dependencies": {
+    "@rescript/react": "^0.10.3",
     "react": "latest",
-    "react-dom": "latest",
-    "reason-react": "latest"
+    "react-dom": "latest"
   },
   "devDependencies": {
     "bs-platform": "latest",
