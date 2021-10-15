@@ -4,10 +4,10 @@
   "homepage": "https://persianturtle.github.io/reason-3d-carousel/build",
   "scripts": {
     "start": "npm-run-all --parallel start:*",
-    "start:bsb": "bsb -clean-world -make-world -w",
+    "start:bsb": "rescript build -w",
     "start:webpack": "webpack-dev-server",
     "build": "npm-run-all build:*",
-    "build:bsb": "bsb -clean-world -make-world",
+    "build:bsb": "rescript build",
     "build:webpack": "NODE_ENV=production webpack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,13 +21,14 @@
   "devDependencies": {
     "bs-platform": "latest",
     "css-loader": "latest",
+    "html-webpack-plugin": "latest",
     "node-sass": "latest",
+    "npm-run-all": "latest",
+    "rescript": "latest",
     "sass-loader": "latest",
     "style-loader": "latest",
-    "html-webpack-plugin": "latest",
-    "webpack-dev-server": "latest",
-    "npm-run-all": "latest",
     "webpack": "latest",
-    "webpack-cli": "latest"
+    "webpack-cli": "latest",
+    "webpack-dev-server": "latest"
   }
 }
