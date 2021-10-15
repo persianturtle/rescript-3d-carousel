@@ -14,21 +14,21 @@
   "author": "Raphael Rafatpanah",
   "license": "MIT",
   "dependencies": {
-    "@rescript/react": "^0.10.3",
-    "react": "latest",
-    "react-dom": "latest"
+    "@rescript/react": "*",
+    "react": "*",
+    "react-dom": "*"
   },
   "devDependencies": {
-    "bs-platform": "latest",
-    "css-loader": "latest",
-    "html-webpack-plugin": "latest",
-    "node-sass": "latest",
-    "npm-run-all": "latest",
-    "rescript": "latest",
-    "sass-loader": "latest",
-    "style-loader": "latest",
-    "webpack": "latest",
-    "webpack-cli": "latest",
-    "webpack-dev-server": "latest"
+    "bs-platform": "*",
+    "css-loader": "*",
+    "html-webpack-plugin": "*",
+    "node-sass": "*",
+    "npm-run-all": "*",
+    "rescript": "*",
+    "sass-loader": "*",
+    "style-loader": "*",
+    "webpack": "*",
+    "webpack-cli": "*",
+    "webpack-dev-server": "*"
   }
 }
