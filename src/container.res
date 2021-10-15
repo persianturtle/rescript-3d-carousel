@@ -15,7 +15,7 @@ type values = {
 
 type velocity = {
   current: ref<float>,
-  list: ref<list<float>>,
+  list: ref<array<float>>,
 }
 
 type state = {
@@ -34,22 +34,15 @@ external requestAnimationFrame: (unit => unit) => int = "requestAnimationFrame"
 @val @scope("performance") external now: unit => float = "now"
 
 let averageLatestNonZeroVelocities = (velocities, n) => {
-  let sum = list => {
-    let rec aux = (acc, list) =>
-      switch list {
-      | list{} => acc
-      | list{hd, ...tl} => aux(acc +. hd, tl)
-      }
-    aux(0.0, list)
-  }
+  let sum = Js.Array2.reduce(
+    velocities->Js.Array2.filter(v => v > 0.0)->Js.Array2.slice(~start=1, ~end_=3),
+    (sum, v) => {
+      v +. sum
+    },
+    0.0,
+  )
 
-  switch {
-    open Belt.List
-    keep(velocities, v => v !== 0.0)->take(3)
-  } {
-  | None => 0.0
-  | Some(list) => sum(list) /. float_of_int(n)
-  }
+  sum /. float_of_int(n)
 }
 
 /* math.stackexchange.com/q/2429749/61853 */
@@ -138,7 +131,7 @@ let make = (
         state.time.initial := now()
         state.time.previous := now()
         state.velocity.current := 0.0
-        state.velocity.list := list{}
+        state.velocity.list := []
         {...state, hasUserInteractionEnded: false}
       | MoveInteraction(clientX) =>
         state.isMouseDown.contents
@@ -153,7 +146,7 @@ let make = (
               let dt = state.time.current.contents -. state.time.previous.contents
               state.velocity.current := dx /. dt
               state.velocity.list :=
-                list{state.velocity.current.contents, ...state.velocity.list.contents}
+                Js.Array2.concat([state.velocity.current.contents], state.velocity.list.contents)
               state.position.previous := state.position.current.contents
               state.time.previous := state.time.current.contents
               {
@@ -195,7 +188,7 @@ let make = (
       transform: buildTransformString(~radius, ~rotation=0.0),
       velocity: {
         current: ref(0.0),
-        list: ref(list{}),
+        list: ref([]),
       },
     },
   )
