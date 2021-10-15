@@ -4,8 +4,9 @@ This is my first ReasonML / Reason-React project. Please share your critisms, op
 
 ## Demo
 
-https://persianturtle.github.io/reason-3d-carousel/build/
+https://persianturtle.github.io/rescript-3d-carousel/build/
 
 ## TODO
 
-- [x] Convert the project to use the Hooks API.
+- [x] Convert the project to use the Hooks API
+- [x] Convert the project to ReScript (thanks to @thetaPC)
