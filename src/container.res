@@ -227,7 +227,7 @@ let make = (
       dispatch(MoveInteraction(ReactEvent.Touch.changedTouches(event)["item"](0)["clientX"]))}
     onTouchEnd={event =>
       dispatch(EndInteraction(ReactEvent.Touch.changedTouches(event)["item"](0)["clientX"]))}
-    style={ReactDOMRe.Style.make(~perspective, ())}>
+    style={ReactDOM.Style.make(~perspective, ())}>
     <Carousel
       numberOfSides
       radius
