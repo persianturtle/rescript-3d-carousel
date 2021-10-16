@@ -1,6 +1,6 @@
-## Reason 3D Carousel
+## ReScript 3D Carousel
 
-This is my first ReasonML / Reason-React project. Please share your critisms, opinions, improvements & questions!
+Please share your critisms, opinions, improvements & questions!
 
 ## Demo
 
