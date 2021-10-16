@@ -84,7 +84,7 @@ let make = () => {
     </div>
     {shouldShowMobileControls
       ? React.null
-      : <a className="github" href="https://github.com/persianturtle/reason-carousel">
+      : <a className="github" href="https://github.com/persianturtle/rescript-3d-carousel">
           {React.string("Fork me on Github")}
         </a>}
   </div>
