@@ -1,12 +1,5 @@
-## ReScript 3D Carousel
+## Standup Carousel
 
-Please share your critisms, opinions, improvements & questions!
+Add your team members in a URL query parameter like so:
 
-## Demo
-
-https://persianturtle.github.io/rescript-3d-carousel/build/
-
-## TODO
-
-- [x] Convert the project to use the Hooks API
-- [x] Convert the project to ReScript (thanks to @thetaPC)
+/?team=Person1,Person2,Person3,Person4

@@ -1,4 +1,11 @@
-%%raw(` import "../../../src/Container.scss" `)
+%%raw(`import "../../../src/Container.scss"`)
+
+@val external location: 'a = "location"
+
+let team: Js.Array2.t<string> = location["search"]["split"](. "=")["1"]["split"](. ",")
+let numberOfSides = Js.Array2.length(team)
+let radius = 25.0 /. Js.Math.tan(180.0 /. float_of_int(numberOfSides) *. (Js.Math._PI /. 180.0))
+let perspective = Js.Float.toString(500.0 /. float_of_int(numberOfSides)) ++ "vw"
 
 type action =
   | StartInteraction(int)
@@ -29,7 +36,7 @@ type state = {
 }
 
 @val
-external requestAnimationFrame: (unit => unit) => int = "requestAnimationFrame"
+external requestAnimationFrame: (float => unit) => int = "requestAnimationFrame"
 
 @val @scope("performance") external now: unit => float = "now"
 
@@ -115,13 +122,7 @@ let buildTransformString = (~radius, ~rotation) =>
   ("vw) rotateY(" ++ (Js.Float.toString(rotation) ++ "deg)")))
 
 @react.component
-let make = (
-  ~numberOfSides,
-  ~radius,
-  ~perspective,
-  ~amountOfFriction,
-  ~shouldRoundToNearestSide,
-) => {
+let make = (~amountOfFriction, ~shouldRoundToNearestSide) => {
   let (state, dispatch) = React.useReducer(
     (state, action) =>
       switch action {
@@ -193,9 +194,9 @@ let make = (
     },
   )
 
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     if state.hasUserInteractionEnded {
-      requestAnimationFrame(() =>
+      requestAnimationFrame(_timestamp => {
         spinWithFriction(
           ~state,
           ~dispatch,
@@ -203,7 +204,7 @@ let make = (
           ~amountOfFriction,
           ~shouldRoundToNearestSide,
         )
-      )->ignore
+      })->ignore
     }
 
     None
@@ -222,9 +223,7 @@ let make = (
       dispatch(EndInteraction(ReactEvent.Touch.changedTouches(event)["item"](0)["clientX"]))}
     style={ReactDOM.Style.make(~perspective, ())}>
     <Carousel
-      numberOfSides
-      radius
-      transform={buildTransformString(~radius, ~rotation=state.rotation.contents)}
+      team radius transform={buildTransformString(~radius, ~rotation=state.rotation.contents)}
     />
   </div>
 }
